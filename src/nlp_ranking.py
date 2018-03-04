@@ -218,7 +218,10 @@ def get_entry_dict(bib_map, bib_dir, discard_abstract=True):
     bibs = {}
     for k, v in bib_map.items():
         fin = open(os.path.join(bib_dir, k+'.bib'))
-        bib = bibtexparser.loads(fin.read())
+        try:
+            bib = bibtexparser.loads(fin.read())
+        except IndexError as e:
+            continue
         bibs.update([get(entry, v.weight, v.series) for entry in bib.entries if valid(entry, v.weight)])
 
     return bibs
