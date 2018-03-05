@@ -19,6 +19,7 @@ import glob
 import codecs
 from contextlib import suppress
 from types import SimpleNamespace
+from collections import Counter
 
 import bibtexparser
 import matplotlib.pyplot as plt
@@ -339,8 +340,14 @@ def generate_email_map(bib_map_file, bib_dir, txt_dir, email_map_file):
 
     for ID, v in sorted(entry_dict.items()):
         n = len(v['author'])
-        e = ';'.join(email_dict[ID][:n]) if ID in email_dict else '_'
-        c = '_'
+        if ID in email_dict:
+            emails = email_dict[ID][:n]
+            e = ';'.join(emails) if ID in email_dict else '_'
+            t = Counter([em.split('@')[1] for em in emails])
+            c = ';'.join(['%s:%f' % (k, v/len(emails)) for k, v in t.items()])
+        else:
+            e = '_'
+            c = '_'
         fout.write('\t'.join([ID, str(n), e, c])+'\n')
 
     fout.close()
@@ -355,7 +362,7 @@ def load_email_map(email_map_file):
         count = int(l[1])
         emails = l[2].split(';') if l[2] != '_' else []
 
-        if len(emails) == 0 or (len(emails) > 1 and len(emails) != count):
+        if len(emails) != count:
             print('\t'.join([ID, l[1], str(len(emails))]))
 
 
@@ -423,19 +430,24 @@ def plot_scores_by_year(author_pub, name, weighted=True):
 
 
 if __name__ == '__main__':
-    BIB_MAP_FILE = '/Users/jdchoi/Git/nlp-ranking/dat/bib_map.tsv'
+    MAP_FILE = '/Users/jdchoi/Git/nlp-ranking/dat/bib_map.tsv'
     BIB_DIR = '/Users/jdchoi/Git/nlp-ranking/bib/'
-    TXT_DIR = '/Users/jdchoi/Git/nlp-ranking/txt/'
-    EMAIL_MAP_FILE = '/Users/jdchoi/Git/nlp-ranking/dat/email_map.tsv'
-    INSTITUTE_FILE = '/Users/jdchoi/Git/nlp-ranking/dat/us_universities.tsv'
+    OUT_DIR = '/Users/jdchoi/Git/nlp-ranking/'
+    # TXT_DIR = '/Users/jdchoi/Git/nlp-ranking/txt/'
+    # EMAIL_MAP_FILE = '/Users/jdchoi/Git/nlp-ranking/dat/email_map.tsv'
+    # INSTITUTE_FILE = '/Users/jdchoi/Git/nlp-ranking/dat/us_universities.tsv'
 
     # EMAIL
     # generate_email_map(BIB_MAP_FILE, BIB_DIR, TXT_DIR, EMAIL_MAP_FILE)
-    load_email_map(EMAIL_MAP_FILE)
+    # load_email_map(EMAIL_MAP_FILE)
+
+    # bib_map = load_map(MAP_FILE)
+    # crawl_aclbib(bib_map, BIB_DIR, OUT_DIR)
 
 
     # collect_bibs('/Users/jdchoi/Git/nlp-ranking')
-
+    # clean_bibs(['/Users/jdchoi/Git/nlp-ranking/Q15.bib', '/Users/jdchoi/Git/nlp-ranking/Q16.bib', '/Users/jdchoi/Git/nlp-ranking/Q17.bib'],
+    #             '/Users/jdchoi/Git/nlp-ranking/bib')
 
 
     # bib_map = load_map(MAP_FILE)
@@ -450,11 +462,10 @@ if __name__ == '__main__':
 
     # check_bibs(acl_map)
 
-    # save_tacl_bib('/Users/jdchoi/Git/nlp-ranking/Q17.txt', 2017, 5)
+    save_tacl_bib('/Users/jdchoi/Git/nlp-ranking/Q17.txt', 2017, 5)
 
     # clean_tacl_bib('/Users/jdchoi/Git/nlp-ranking/dat/aclbib/Q16.bib', '/Users/jdchoi/Git/nlp-ranking/Q16.bib', 'Q16-10')
 
-    # crawl_aclbib(acl_map, BIB_DIR)
     # author_pub = publications_per_author(acl_map)
     # extract_paper_urls(acl_map, WGET_FILE)
 
